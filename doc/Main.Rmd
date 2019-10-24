@@ -174,11 +174,13 @@ Call the train model and test model from library.
 #source("../lib/train.R") #Since knn does not need to train, I comment this line.
 #source("../lib/test_knn.R")
 ```
+
+
 ```{r}
 #Nicole's updates: changed train.R to return gbm model, and test.R to test the predictions
 #model done with no cross validation yet
 source("../lib/train.R")
-
+load(file="../output/feature_train.RData")
 
 #now actually train
 tm_train=NA
@@ -191,26 +193,29 @@ save(fit_train, file="../output/fit_train.RData")
 #Test the baseline model and evaluate: random guess is 4.6
 ### Step 5: Run test on test images
 source("../lib/test.R")
+load(file="../output/feature_test.RData")
 tm_test=NA
 load(file="../output/fit_train.RData")
 tm_test <- system.time(pred <- test(fit_train, dat_test))
 
 #the output is just probabilities,need to convert to categorical
-pred <- apply(predBST, 1, which.max)
+pred <- apply(pred, 1, which.max)
 
 #evaluation
 accu <- mean(dat_test$emotion_idx == pred)
 cat("The accuracy of model is", accu*100, "%.\n")
 ```
+
+
 ```{r}
 pred
 ```
 
 ```{r}
+
+#Nicole: Still working on this part
 library(caret)
 confusionMatrix(pred, dat_test$emotion_idx)
-
-
 #Note that the accuracy is not high but is better than that of ramdom guess(4.5%). 
 
 ### Summarize Running Time
