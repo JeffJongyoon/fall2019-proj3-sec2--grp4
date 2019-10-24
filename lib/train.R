@@ -28,7 +28,7 @@ train <- function(feature_df = pairwise_data, par = NULL){
   #return(model = svm_model)
    
   ##train with gbm model
-   gbm_model<- gbm(emotion_idx~., data = feature_df, n.trees = 100)
+   gbm_model<- gbm(emotion_idx~., data = feature_df, n.trees = 500)
    return(model=gbm_model)
 }
 
