@@ -10,9 +10,9 @@ test <- function(model, dat_test){
   ### Output: training model specification
   
   ### load libraries
-  library("e1071")
+  #library("e1071")
   
   ### make predictions
-  pred <- predict(model, dat_test)
+  pred <- predict(model, dat_test,n.trees = 100,type = "response")
   return(pred)
 }

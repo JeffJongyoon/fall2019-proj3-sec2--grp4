@@ -1,6 +1,7 @@
 ###########################################################
 ### Train a classification model with training features ###
 ###########################################################
+library(gbm)
 train <- function(feature_df = pairwise_data, par = NULL){
   ### Train an SVM model using processed features from training images
   
@@ -21,9 +22,13 @@ train <- function(feature_df = pairwise_data, par = NULL){
     cost = par$cost
   }
   
-   svm_model <- svm(categoryID~., data = feature_df,
-                    kernel = "radial", gamma = gamma, cost = cost) 
+   #svm_model <- svm(categoryID~., data = feature_df, kernel = "radial", gamma = gamma, cost = cost) 
+   
 
-  return(model = svm_model)
+  #return(model = svm_model)
+   
+  ##train with gbm model
+   gbm_model<- gbm(emotion_idx~., data = feature_df, n.trees = 100)
+   return(model=gbm_model)
 }
 

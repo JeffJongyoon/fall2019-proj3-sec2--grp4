@@ -24,6 +24,9 @@ if(!require("readxl")){
 if(!require("dplyr")){
   install.packages("dplyr")
 }
+if(!require("gbm")){
+  install.packages("gbm")
+}
 if(!require("readxl")){
   install.packages("readxl")
 }
@@ -47,7 +50,7 @@ library(caret)
 ### Step 0 set work directories, extract paths, summarize
 ```{r wkdir, eval=FALSE}
 set.seed(0)
-setwd("~/Project3-FacialEmotionRecognition/doc")
+#setwd("~/Project3-FacialEmotionRecognition/doc")
 # here replace it with your own path or manually set it in RStudio to where this rmd file is located. 
 # use relative path for reproducibility
 ```
@@ -168,8 +171,54 @@ Call the train model and test model from library.
 + In this Starter Code, we use KNN to do classification. 
 
 ```{r loadlib}
-#source("../lib/train.R") Since knn does not need to train, I comment this line.
-source("../lib/test_knn.R")
+#source("../lib/train.R") #Since knn does not need to train, I comment this line.
+#source("../lib/test_knn.R")
+```
+```{r}
+#Nicole's updates: changed train.R to return gbm model, and test.R to test the predictions
+#model done with no cross validation yet
+source("../lib/train.R")
+
+
+#now actually train
+tm_train=NA
+tm_train <- system.time(fit_train <- train(dat_train, NULL))
+save(fit_train, file="../output/fit_train.RData")
+
+```
+
+```{r}
+#Test the baseline model and evaluate: random guess is 4.6
+### Step 5: Run test on test images
+source("../lib/test.R")
+tm_test=NA
+load(file="../output/fit_train.RData")
+tm_test <- system.time(pred <- test(fit_train, dat_test))
+
+#the output is just probabilities,need to convert to categorical
+pred <- apply(predBST, 1, which.max)
+
+#evaluation
+accu <- mean(dat_test$emotion_idx == pred)
+cat("The accuracy of model is", accu*100, "%.\n")
+```
+```{r}
+pred
+```
+
+```{r}
+library(caret)
+confusionMatrix(pred, dat_test$emotion_idx)
+
+
+#Note that the accuracy is not high but is better than that of ramdom guess(4.5%). 
+
+### Summarize Running Time
+#Prediction performance matters, so does the running times for constructing features and #for training the model, especially when the computation resource is limited. 
+cat("Time for constructing training features=", tm_feature_train[1], "s \n")
+cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
+#cat("Time for training model=", tm_train[1], "s \n")
+cat("Time for testing model=", tm_test[1], "s \n")
 ```
 
 #### Model selection with cross-validation
