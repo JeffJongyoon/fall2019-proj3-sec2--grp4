@@ -176,6 +176,8 @@ Call the train model and test model from library.
 ```
 
 
+## ------>>>> Implementation of the baseline model starts here
+
 ```{r}
 #Nicole's updates: changed train.R to return gbm model, and test.R to test the predictions
 #model done with no cross validation yet
@@ -221,6 +223,8 @@ confusionMatrix(table(pred, dat_test$emotion_idx))
 cat("Time for training model=", tm_train[1], "s \n")
 cat("Time for testing model=", tm_test[1], "s \n")
 ```
+
+### ------>>>> Implementation of the baseline model ends here
 
 #### Model selection with cross-validation
 * Do model selection by choosing among different values of training model parameters.
