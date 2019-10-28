@@ -1,0 +1,212 @@
+---
+title: "Project 3"
+author: "Dingyi Fang"
+date: "10/27/2019"
+output: html_document
+---
+In your final repo, there should be an R markdown file that organizes **all computational steps** for evaluating your proposed Facial Expression Recognition framework. 
+
+This file is currently a template for running evaluation experiments. You should update it according to your codes but following precisely the same structure. 
+
+```{r message=FALSE}
+if(!require("EBImage")){
+  source("https://bioconductor.org/biocLite.R") 
+  biocLite("EBImage")
+}
+if(!require("R.matlab")){
+  install.packages("R.matlab")
+}
+if(!require("readxl")){
+  install.packages("readxl")
+}
+
+if(!require("dplyr")){
+  install.packages("dplyr")
+}
+if(!require("gbm")){
+  install.packages("gbm")
+}
+if(!require("readxl")){
+  install.packages("readxl")
+}
+
+if(!require("ggplot2")){
+  install.packages("ggplot2")
+}
+
+if(!require("caret")){
+  install.packages("caret")
+}
+
+if(!require("keras")){
+  install.packages("keras")
+}
+
+if(!require("stringr")){
+  install.packages("stringr")
+}
+
+if(!require("pbapply")){
+  install.packages("pbapply")
+}
+
+if(!require("varhandle")){
+  install.packages("varhandle")
+}
+library(R.matlab)
+library(readxl)
+library(dplyr)
+library(EBImage)
+library(ggplot2)
+library(caret)
+library(keras)
+library(stringr)
+library(pbapply)
+library(tensorflow)
+library(varhandle)
+```
+
+### Step 0 set work directories, extract paths, summarize
+```{r wkdir, eval=FALSE}
+set.seed(0)
+#setwd("~/Project3-FacialEmotionRecognition/doc")
+# here replace it with your own path or manually set it in RStudio to where this rmd file is located. 
+# use relative path for reproducibility
+```
+Provide directories for training images. Training images and Training fiducial points will be in different subfolders.
+```{r}
+train_dir <- "../data/train_set/" # This will be modified for different data sets.
+train_image_dir <- paste(train_dir, "images/", sep="")
+train_pt_dir <- paste(train_dir,  "points/", sep="")
+train_label_path <- paste(train_dir, "label.csv", sep="")
+
+```
+
+Image Processing Part 
+```{r}
+#set image size
+width <- 100
+height <- 100
+
+#get_data_ matrix part 
+extract_feature <- function(dir_path, width, height) {
+      
+  img_size <- width * height
+  ## List images in path
+  images_names <- list.files(dir_path)
+  
+  print(paste("Start processing", length(images_names), "images"))
+       
+  ## This function will resize an image, turn it into greyscale
+  feature_list <- pblapply(images_names, function(imgname) {
+            ## Read image
+            img <- readImage(file.path(dir_path, imgname))
+            ##crop the image
+            img <- img[301:800,101:700,]
+            ## Resize image
+            img_resized <- resize(img, w = width, h = height)
+            ## Set to grayscale (normalized to max)
+            grayimg <- channel(img_resized, "gray")
+            ## Get the image as a matrix
+            img_matrix <- grayimg@.Data
+            ## Coerce to a vector (row-wise)
+            img_vector <- as.vector(t(img_matrix))
+            return(img_vector)
+      })
+      ## bind the list of vector into matrix
+      feature_matrix <- do.call(rbind, feature_list)
+      feature_matrix <- as.data.frame(feature_matrix)
+      ## Set names
+      names(feature_matrix) <- paste0("pixel", c(1:img_size))
+     # feature_matrix$ID <- c(1:length(images_names))
+      labels <- read.csv(train_label_path)
+      y <- labels$emotion_idx
+      return(list(X=feature_matrix, Y = y))
+}
+#get the labels
+labels <- read.csv(train_label_path)
+emotion_list <- as.factor(labels$emotion_cat)
+output_n <- length(unique(emotion_list))
+
+binary_labels <- to.dummy(emotion_list,"Emotion")
+```
+
+```{r}
+#Take approx.4 min
+train_Data <- extract_feature(train_image_dir,width,height)
+```
+
+```{r}
+#save files
+save(train_Data,file = "train_data_array.RData")
+```
+
+
+```{r}
+#Check processing on second face
+par(mar = rep(0, 4))
+testFace <- t(matrix(as.numeric(train_Data$X[200,]),
+                  nrow = width, ncol = height, T))
+image(t(apply(testFace, 2, rev)), col = gray.colors(12),
+      axes = F)
+```
+
+
+```{r}
+#fix structure for 2d CNN
+train_array <- t(train_Data$X)
+dim(train_array) <- c(width,height,nrow(train_Data$X),1)
+train_array <- aperm(train_array,c(3,1,2,4))
+
+#test_array <- t(test_Data)
+#dim(test_Data) <- c(height,width,nrow(train_Data),1)
+#test_Data <- aperm(test_Data,c(3,1,2,4))
+
+##check face
+test_face <- train_array[300,,,]
+image(t(apply(test_face, 2, rev)),col=gray.colors(12),axes = F)
+```
+
+```{r}
+#build CNN models
+# Build CNN model
+model <- keras_model_sequential() 
+model %>% 
+      layer_conv_2d(kernel_size = c(3, 3), filter = 32,
+                    activation = "relu", padding = "same",
+                    input_shape = c(100, 100, 1),
+                    data_format = "channels_last") %>%
+      layer_activation("relu") %>%
+      #second hidden layer
+      layer_conv_2d(kernel_size = c(3, 3), filter = 16,padding = "same") %>%
+      layer_activation_leaky_relu(0.5)%>%
+      layer_batch_normalization()%>%
+      #Use max pooling
+      layer_max_pooling_2d(pool_size = c(2,2)) %>%
+      layer_dropout(rate = 0.25) %>%
+      #Flatten max filtered output into feature vector
+      #feed into dense layer
+      layer_flatten() %>%
+      layer_dense(units = 100, activation = "relu") %>% 
+      layer_dropout(rate = 0.5)  %>%
+      #outputs from dense layer are projected onto output layer
+      layer_dense(output_n)
+      layer_activation(activation = "softmax")
+      
+
+summary(model)
+
+model %>% compile(
+      loss = 'binary_crossentropy',
+      optimizer = "adam",
+      metrics = "accuracy"
+)
+
+history <- model %>% fit(
+      x = train_array, y = binary_labels,
+      epochs = 20, batch_size = 100, 
+      validation_split = 0.2,
+      verbose = 2
+)
+```
+
