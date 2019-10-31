@@ -1,20 +1,24 @@
 ### A Note on Contributions
-
-Whenever we have team projects, there are always concerns on unequal contributions from members of a project team. In the ideal world, we are all here to put in our best efforts and learn together. Even in that ideal world, we have different skill sets and preparations, and we will still contribute differently to a project. 
-
-Therefore, you are required to post a *contribution statement* in the root README.md of your GitHub repo. Please beware that your GitHub repo will become public and remain public after the due date of the projects. 
-
-Post your title, team members, project abstract and a contribution statement in the README.md file.  This is a common practice for research scientific journals. 
-
-Below is an example. If no contribution statement is provided, we will insert a default statement that goes "**All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement**. "
-
 ---
-Sample project README statement.
+Project 3, Group 4
+Team members: 
++ Chai, Nyu nc2774@columbia.edu
++ Fang, Dingyi df2709@columbia.edu
++ Gao, Zun zg2307@columbia.edu
++ Mbithe, Nicole ncm2144@columbia.edu
++ Sohn, Jongyoon js5342@columbia.edu
++ Wu, Qiqi qw2273@columbia.edu
 
-Project xxx
+Summary: In this project, we created a classification engine for facial emotion recognition. For the baseline model we used a gbm model for which we learned the best hyperparameters. For the improved model, we tried XGBoost, and saw some improvement but for the final model we ended up using a NN that learned from the pairwise distances of fiducial points in each image. Explanations as to which improvements we were able to obtain are in the python notebook with the improved model.
 
-Team members: Avi Bond, Comma Deed, En Funn, Gem Hon
+[Contribution Statement] All team members agree with this contribution statement
+### Each teammate's part:
++ Qiqi: Research on feature extraction,XGBoost model and NN model attempts and tuning
++ Zun: Feature extraction ,CNN model attempt and NN model tuning and modification
++ Nicole: Feature extraction plus baseline model creation and tuning.
++ Jongyoon: XGBoost attempt, Prepared the presentation
++ Nyu: Feature extraction
++ Dingyi: Logistic regression + svm attempts (without feature selection/transformation)
 
-Summary: In this project, we developed a new method and improved the classification accuracy for images of cats and dogs to 99.9%
-
-[Contribution Statement] AB, CD, EF and GH designed the study. AB and CD developed baseline classification model for evaluation. EF and GH explored feature engineering for improving the baseline model. AB, EF and GH discussed and designed the model evaluation protocol. CD carried out the computation for model evaluation. All team members contributed to the GitHub repository and prepared the presentation. All team members approve our work presented in our GitHub repository including this contribution statement.
+**Major contributors:** Zun, Nicole, Jongyoon,Qiqi
+**Average participation:** Dingyi, Nyu
