@@ -6,15 +6,16 @@
 
 Term: Fall 2019
 
-+ Team ##
++ Team 4
 + Team members
-	+ team member 1
-	+ team member 2
-	+ team member 3
-	+ team member 4
-	+ team member 5
+	+ Chai, Nyu nc2774@columbia.edu
+	+ Fang, Dingyi df2709@columbia.edu
+	+ Gao, Zun zg2307@columbia.edu
+	+ Mbithe, Nicole ncm2144@columbia.edu
+	+ Sohn, Jongyoon js5342@columbia.edu
+	+ Wu, Qiqi qw2273@columbia.edu
 
-+ Project summary: In this project, we created a classification engine for facial emotion recognition. 
++ Project summary: In this project, we created a classification engine for facial emotion recognition. For the baseline model we used a gbm model for which we learned the best hyperparameters. For the improved model, we used a CNN that learned from the pairwise distances of fiducial points in each image. Explanations as to which improvements we were able to obtain are in the python notebook with the improved model.
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md)) All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
 
