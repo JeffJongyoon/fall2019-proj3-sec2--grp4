@@ -2,7 +2,7 @@
 ### Train a classification model with training features ###
 ###########################################################
 library(gbm)
-train <- function(feature_df = pairwise_data, par = NULL){
+train <- function(feature_df = pairwise_data, params = NULL){
   ### Train an SVM model using processed features from training images
   
   ### Input:
