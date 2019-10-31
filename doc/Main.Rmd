@@ -252,7 +252,7 @@ cat("Time for testing model=", tm_test[1], "s \n")
 **##-------->>>> Game Day predictions**
 ```{r}
 #read in the test data
-test_dir <- "../data/test_set/"
+test_dir <- "../data/test_set_sec2/"
 test_image_dir <- paste(test_dir, "images/", sep="")
 test_pt_dir <- paste(test_dir,  "points/", sep="")
 
@@ -265,7 +265,7 @@ readMat.matrix <- function(index){
 
 #load fiducial points
 test_fiducial_pt_list <- lapply(1:n_files, readMat.matrix)
-save(test_fiducial_pt_list, file="../output/baseline_fiducial_pt_list.RData")
+#save(test_fiducial_pt_list, file="../output/baseline_fiducial_pt_list.RData")
 ```
 
 #------->>>>> extract features
@@ -277,7 +277,9 @@ pairwise_dist <- function(vec){
 pairwise_dist_result <-function(mat){
   return(as.vector(apply(mat, 2, pairwise_dist))) 
 }
-final_test<- t(sapply(test_fiducial_pt_list, pairwise_dist_result))
+pairwise_data <- t(sapply(test_fiducial_pt_list, pairwise_dist_result))
+colnames(pairwise_data) <- paste("feature", 1:(ncol(pairwise_data)), sep = "")
+final_test<-  as.data.frame(pairwise_data)
 
 ```
 
@@ -292,6 +294,9 @@ tm_final_test <- system.time(test_pred <- test(fit_train, final_test))
 test_pred <- apply(test_pred, 1, which.max)
 ```
 
+```{r}
+print(tm_final_test[1])
+```
 
 ```{r}
 #write prediction to csv
