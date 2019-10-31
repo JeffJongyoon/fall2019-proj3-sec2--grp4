@@ -2,6 +2,7 @@
 title: "Main"
 author: "Group 4"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -205,7 +206,7 @@ grid.arrange(plot.01, plot.05, plot.1,nrow=3)
 
 ## Step 6: Train the model with the hyperparameters that resulted in the lowest RMSE
 ```{r}
-#using the best learned parameters, train the final model
+#using the best learned parameters, train the final model. Commented out for the sake of knitting
 best_params = c(259,3,0.05,0,0)
 tm_train=NA
 tm_train <- system.time(fit_train <- train(dat_train, best_params))
@@ -245,6 +246,7 @@ cat("Time for training model=", tm_train[1], "s \n")
 cat("Time for testing model=", tm_test[1], "s \n")
 ```
 **### ------>>>> Implementation of the baseline model ends here**
+
 
 ###Reference
 - Du, S., Tao, Y., & Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454-E1462.
