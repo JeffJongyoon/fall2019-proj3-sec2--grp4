@@ -1,14 +1,11 @@
 ---
 title: "Main"
-author: "Chengliang Tang, Yujie Wang, Tian Zheng"
+author: "Group 4"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
-In your final repo, there should be an R markdown file that organizes **all computational steps** for evaluating your proposed Facial Expression Recognition framework. 
-
-This file is currently a template for running evaluation experiments. You should update it according to your codes but following precisely the same structure. 
-
 ```{r message=FALSE}
 if(!require("EBImage")){
   source("https://bioconductor.org/biocLite.R")
@@ -46,7 +43,7 @@ library(EBImage)
 library(ggplot2)
 library(caret)
 ```
-
+## In here is the group's implementation of the baseline model
 ### Step 0 set work directories, extract paths, summarize
 ```{r wkdir, eval=FALSE}
 set.seed(0)
@@ -64,31 +61,7 @@ train_label_path <- paste(train_dir, "label.csv", sep="")
 ```
 
 
-### Step 1: set up controls for evaluation experiments.
-
-In this chunk, we have a set of controls for the evaluation experiments. 
-
-+ (T/F) cross-validation on the training set
-+ (number) K, the number of CV folds
-+ (T/F) process features for training set
-+ (T/F) run evaluation on an independent test set
-+ (T/F) process features for test set
-
-```{r exp_setup}
-run.cv=TRUE # run cross-validation on the training set
-K <- 5  # number of CV folds
-run.feature.train=TRUE # process features for training set
-run.test=TRUE # run evaluation on an independent test set
-run.feature.test=TRUE # process features for test set
-```
-Using cross-validation or independent test set evaluation, we compare the performance of models with different specifications. In this Starter Code, we tune parameter k (number of neighbours) for KNN.
-
-```{r model_setup}
-k = c(5,11,21,31,41,51)
-model_labels = paste("KNN with K =", k)
-```
-
-### Step 2: import data and train-test split 
+### Step 1: import data and train-test split 
 ```{r}
 #train-test split
 info <- read.csv(train_label_path)
@@ -122,7 +95,7 @@ fiducial_pt_list <- lapply(1:n_files, readMat.matrix)
 save(fiducial_pt_list, file="../output/fiducial_pt_list.RData")
 ```
 
-### Step 3: construct features and responses
+### Step 2: construct features and responses
 
 + The follow plots show how pairwise distance between fiducial points can work as feature for facial emotion recognition.
 
@@ -142,20 +115,16 @@ and the midpoint of the upper lip(52).  For example, the distance of an happy fa
 ```{r feature}
 source("../lib/feature.R")
 tm_feature_train <- NA
-if(run.feature.train){
-  tm_feature_train <- system.time(dat_train <- feature(fiducial_pt_list, train_idx))
-}
+tm_feature_train <- system.time(dat_train <- feature(fiducial_pt_list, train_idx))
 
 tm_feature_test <- NA
-if(run.feature.train){
-  tm_feature_test <- system.time(dat_test <- feature(fiducial_pt_list, test_idx))
-}
+tm_feature_test <- system.time(dat_test <- feature(fiducial_pt_list, test_idx))
 
 save(dat_train, file="../output/feature_train.RData")
 save(dat_test, file="../output/feature_test.RData")
 ```
 
-### Step 4: Train a classification model with training features and responses
+### Step 3: Train a classification model with training features and responses
 Call the train model and test model from library. 
 
 `train.R` and `test.R` should be wrappers for all your model training steps and your classification/prediction steps. 
@@ -168,32 +137,86 @@ Call the train model and test model from library.
   + Input: an R object that contains a trained classifier.
   + Output: training model specification
 
-+ In this Starter Code, we use KNN to do classification. 
-
-```{r loadlib}
-#source("../lib/train.R") #Since knn does not need to train, I comment this line.
-#source("../lib/test_knn.R")
-```
-
-
-## ------>>>> Implementation of the baseline model starts here
-
 ```{r}
-#Nicole's updates: changed train.R to return gbm model, and test.R to test the predictions
-#model done with no cross validation yet
+#load the relevant files
 source("../lib/train.R")
+source("../lib/test.R")
 load(file="../output/feature_train.RData")
-
-#now actually train
-tm_train=NA
-tm_train <- system.time(fit_train <- train(dat_train, NULL))
-save(fit_train, file="../output/fit_train.RData")
-
+load(file="../output/feature_test.RData")
 ```
 
+## Step 4: Tune the model to get the best hyperparameters for the baseline model. Only ran this cell once, the hyperparameters are stored in output/hyper_grid.csv
 ```{r}
-#Test the baseline model and evaluate: random guess is 4.6
-### Step 5: Run test on test images
+#learn the optimal parameters for the gbm model
+#create a grid of all the hyperparameters
+#hyper_grid <- expand.grid(
+  #shrinkage = c(.01, .05,.1), #the learning rate
+  #interaction.depth = c(3, 5, 7), #maximum number of nodes per tree
+  #n.minobsinnode = 0,
+  #n_trees = c(50,100,500),#number of trees to try in the model
+  #bag.fraction = 0,
+  #optimal_trees = 0,               
+  #min_RMSE = 0                     
+#)
+
+#do a grid search
+#for(i in 1:nrow(hyper_grid)) {
+  # train model
+  #cat(i, " of ", nrow(hyper_grid), " ")
+  #params = c(hyper_grid$n_trees[i],hyper_grid$interaction.depth[i],hyper_grid$shrinkage[i],hyper_grid$n.minobsinnode[i], hyper_grid$bag.fraction[i])
+  #train.tune <- train(dat_train,  params)
+  
+  # add min training error and trees to grid add training time too
+  #hyper_grid$optimal_trees[i] <- which.min(train.tune$valid.error)
+  #hyper_grid$min_RMSE[i] <- sqrt(min(train.tune$valid.error))
+#}
+```
+
+##Step 5: Visualize how the RMSE changes with the different parameters we tuned for
+```{r}
+#read in csv with learned hyperparameters
+hyper_params<-read.csv("../output/hyper_grid.csv", header=TRUE, sep = ",")
+
+#split the table for different levels of shrinkage
+data.01 <- hyper_params[hyper_params$shrinkage==0.01,]
+data.05 <- hyper_params[hyper_params$shrinkage==0.05,]
+data.1 <- hyper_params[hyper_params$shrinkage==0.1,]
+
+#for each table, keep the different depths and their depths
+plot.01 = ggplot() + 
+  geom_line(data = data.01[data.01$interaction.depth==7,], mapping = aes(x = n_trees, y = min_RMSE,color="7")) + 
+  geom_line(data = data.01[data.01$interaction.depth==3,], mapping = aes( x = n_trees, y = min_RMSE, color="3"))+
+  geom_line(data.01[data.01$interaction.depth==5,], mapping = aes(x = n_trees, y = min_RMSE,color="5"))+ labs(title = "Min RMSE for different number of trees at shrinkage 0.01", color = "depth")
+
+plot.05 = ggplot() + 
+  geom_line(data = data.05[data.05$interaction.depth==7,], mapping = aes(x = n_trees, y = min_RMSE,color="7")) + 
+  geom_line(data = data.05[data.05$interaction.depth==3,], mapping = aes( x = n_trees, y = min_RMSE, color="3"))+
+  geom_line(data.05[data.05$interaction.depth==5,], mapping = aes(x = n_trees, y = min_RMSE,color="5"))+ labs(title = "Min RMSE for different number of trees at shrinkage 0.05", color = "depth")
+
+plot.1 = ggplot() + 
+  geom_line(data = data.1[data.1$interaction.depth==7,], mapping = aes(x = n_trees, y = min_RMSE,color="7")) + 
+  geom_line(data = data.1[data.1$interaction.depth==3,], mapping = aes( x = n_trees, y = min_RMSE, color="3"))+
+  geom_line(data.1[data.1$interaction.depth==5,], mapping = aes(x = n_trees, y = min_RMSE,color="5"))+ labs(title = "Min RMSE for different number of trees at shrinkage 0.1", color = "depth")
+
+
+#plot the 3 plots
+grid.arrange(plot.01, plot.05, plot.1,nrow=3)
+```
+
+
+## Step 6: Train the model with the hyperparameters that resulted in the lowest RMSE
+```{r}
+#using the best learned parameters, train the final model. Commented out for the sake of knitting
+best_params = c(259,3,0.05,0,0)
+tm_train=NA
+tm_train <- system.time(fit_train <- train(dat_train, best_params))
+save(fit_train, file="../output/fit_train.RData")
+```
+
+
+##Step 7: Test the final model
+```{r}
+#test the final model: and print out graph
 source("../lib/test.R")
 load(file="../output/feature_test.RData")
 tm_test=NA
@@ -203,103 +226,28 @@ tm_test <- system.time(pred <- test(fit_train, dat_test))
 #the output is just probabilities,need to convert to categorical
 pred <- apply(pred, 1, which.max)
 
-#evaluation
 accu <- mean(dat_test$emotion_idx == pred)
 cat("The accuracy of model is", accu*100, "%.\n")
+
 ```
 
-
+##Step 4: Evaluate the final model
 ```{r}
-
-#Nicole: Still working on this part
+#evaluation
 library(caret)
-confusionMatrix(table(pred, dat_test$emotion_idx))
-#Note that the accuracy is not high but is better than that of ramdom guess(4.5%). 
+#this line below prints out the evaluation of the model
+#confusionMatrix(table(pred, dat_test$emotion_idx))
 
 ### Summarize Running Time
 #Prediction performance matters, so does the running times for constructing features and #for training the model, especially when the computation resource is limited. 
-#cat("Time for constructing training features=", tm_feature_train[1], "s \n")
-#cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
+cat("Time for constructing training features=", tm_feature_train[1], "s \n")
+cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
 cat("Time for training model=", tm_train[1], "s \n")
 cat("Time for testing model=", tm_test[1], "s \n")
 ```
+**### ------>>>> Implementation of the baseline model ends here**
 
-### ------>>>> Implementation of the baseline model ends here
-
-#### Model selection with cross-validation
-* Do model selection by choosing among different values of training model parameters.
-```{r runcv, eval=F}
-source("../lib/cross_validation_knn.R")
-if(run.cv){
-  err_cv <- matrix(0, nrow = length(k), ncol = 2)
-  for(i in 1:length(k)){
-    cat("k=", k[i], "\n")
-    err_cv[i,] <- cv.function(dat_train, K, k[i])
-  save(err_cv, file="../output/err_cv.RData")
-  }
-}
-```
-
-Visualize cross-validation results. 
-```{r cv_vis}
-if(run.cv){
-  load("../output/err_cv.RData")
-  err_cv <- as.data.frame(err_cv) 
-  colnames(err_cv) <- c("mean_error", "sd_error")
-  err_cv$k = as.factor(k)
-  err_cv %>% 
-    ggplot(aes(x = k, y = mean_error,
-               ymin = mean_error - sd_error, ymax = mean_error + sd_error)) + 
-    geom_crossbar() +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1))
-}
-
-```
-
-
-* Choose the "best" parameter value
-```{r best_model}
-if(run.cv){
-  model_best <- k[which.min(err_cv[,1])]
-}
-par_best <- list(k = model_best)
-```
-
-* Train the model with the entire training set using the selected model (model parameter) via cross-validation.
-```{r final_train}
-#tm_train=NA
-#tm_train <- system.time(fit_train <- train(dat_train, par_best))
-#save(fit_train, file="../output/fit_train.RData")
-```
-
-### Step 5: Run test on test images
-```{r test}
-tm_test=NA
-if(run.test){
-  load(file="../output/fit_train.RData")
-  tm_test <- system.time(pred <- test(model_best, dat_test))
-}
-```
-
-* evaluation
-```{r}
-accu <- mean(dat_test$emotion_idx == pred)
-cat("The accuracy of model:", model_labels[which.min(err_cv[,1])], "is", accu*100, "%.\n")
-
-library(caret)
-confusionMatrix(pred, dat_test$emotion_idx)
-```
-
-Note that the accuracy is not high but is better than that of ramdom guess(4.5%). 
-
-### Summarize Running Time
-Prediction performance matters, so does the running times for constructing features and for training the model, especially when the computation resource is limited. 
-```{r running_time}
-cat("Time for constructing training features=", tm_feature_train[1], "s \n")
-cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
-#cat("Time for training model=", tm_train[1], "s \n")
-cat("Time for testing model=", tm_test[1], "s \n")
-```
 
 ###Reference
 - Du, S., Tao, Y., & Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454-E1462.
+- http://uc-r.github.io/gbm_regression

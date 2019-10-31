@@ -2,33 +2,26 @@
 ### Train a classification model with training features ###
 ###########################################################
 library(gbm)
-train <- function(feature_df = pairwise_data, par = NULL){
+train <- function(feature_df = pairwise_data, params = NULL){
   ### Train an SVM model using processed features from training images
   
   ### Input:
   ### - a data frame containing features and labels
-  ### - a parameter list
+  ### - a parameter list with n trees, shrinkage, etc
   ### Output: trained model
   
-  ### load libraries
-  library("e1071")
-  
-  ### Train with SVM
-  if(is.null(par)){
-    gamma = 10^(-1)
-    cost = 1
-  } else {
-    gamma = par$gamma
-    cost = par$cost
-  }
-  
-   #svm_model <- svm(categoryID~., data = feature_df, kernel = "radial", gamma = gamma, cost = cost) 
-   
-
-  #return(model = svm_model)
-   
   ##train with gbm model
-   gbm_model<- gbm(emotion_idx~., data = feature_df, n.trees = 500)
-   return(model=gbm_model)
+  gbm_model<- gbm(
+    emotion_idx~., 
+    data = feature_df, 
+    n.trees = params[1],
+    interaction.depth = params[2],
+    shrinkage = params[3],
+    #n.minobsinnode = params[5],
+    #bag.fraction = params[6],
+    train.fraction = .75
+    )
+  
+  return(model=gbm_model)
 }
 

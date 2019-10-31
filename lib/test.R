@@ -1,3 +1,4 @@
+
 ########################################
 ### Classification with testing data ###
 ########################################
@@ -13,6 +14,6 @@ test <- function(model, dat_test){
   #library("e1071")
   
   ### make predictions
-  pred <- predict(model, dat_test,n.trees = 500,type = "response")
+  pred <- predict(model, dat_test,n.trees = 259,type = "response")
   return(pred)
 }
