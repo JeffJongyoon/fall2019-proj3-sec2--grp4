@@ -2,7 +2,7 @@
 ########################################
 ### Classification with testing data ###
 ########################################
-
+library(caret)
 test <- function(model, dat_test){
   
   ### Input: 

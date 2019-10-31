@@ -9,8 +9,7 @@ feature <- function(input_list = fiducial_pt_list, index){
   ### Input: a list of images or fiducial points; index: train index or test index
 
   ### Output: a data frame containing: features and a column of label
-  
-  ### here is an example of extracting pairwise distances between fiducial points
+
   ### Step 1: Write a function pairwise_dist to calculate pairwise distance of items in a vector
   pairwise_dist <- function(vec){
     ### input: a vector(length n), output: a vector containing pairwise distances(length n(n-1)/2)

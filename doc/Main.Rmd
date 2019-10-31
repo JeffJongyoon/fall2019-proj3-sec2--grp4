@@ -219,6 +219,7 @@ save(fit_train, file="../output/fit_train.RData")
 #test the final model: and print out graph
 source("../lib/test.R")
 load(file="../output/feature_test.RData")
+load(file="../output/feature_train.RData")
 tm_test=NA
 load(file="../output/fit_train.RData")
 tm_test <- system.time(pred <- test(fit_train, dat_test))
@@ -227,11 +228,11 @@ tm_test <- system.time(pred <- test(fit_train, dat_test))
 pred <- apply(pred, 1, which.max)
 
 accu <- mean(dat_test$emotion_idx == pred)
-cat("The accuracy of model is", accu*100, "%.\n")
+cat("The test accuracy of model is", accu*100, "%.\n")
 
 ```
 
-##Step 4: Evaluate the final model
+##Step 8: Evaluate the final model
 ```{r}
 #evaluation
 library(caret)
@@ -246,6 +247,57 @@ cat("Time for training model=", tm_train[1], "s \n")
 cat("Time for testing model=", tm_test[1], "s \n")
 ```
 **### ------>>>> Implementation of the baseline model ends here**
+
+
+**##-------->>>> Game Day predictions**
+```{r}
+#read in the test data
+test_dir <- "../data/test_set/"
+test_image_dir <- paste(test_dir, "images/", sep="")
+test_pt_dir <- paste(test_dir,  "points/", sep="")
+
+#---> read in fiducial points
+n_files <- length(list.files(test_pt_dir))
+
+readMat.matrix <- function(index){
+     return(round(readMat(paste0(test_pt_dir, sprintf("%04d", index), ".mat"))[[1]],0))
+}
+
+#load fiducial points
+test_fiducial_pt_list <- lapply(1:n_files, readMat.matrix)
+save(test_fiducial_pt_list, file="../output/baseline_fiducial_pt_list.RData")
+```
+
+#------->>>>> extract features
+```{r}
+#extract the features using the test data
+pairwise_dist <- function(vec){
+  return(as.vector(dist(vec)))
+}
+pairwise_dist_result <-function(mat){
+  return(as.vector(apply(mat, 2, pairwise_dist))) 
+}
+final_test<- t(sapply(test_fiducial_pt_list, pairwise_dist_result))
+
+```
+
+#predict
+```{r}
+source("../lib/test.R")
+load(file="../output/fit_train.RData")
+tm_test=NA
+tm_final_test <- system.time(test_pred <- test(fit_train, final_test))
+
+#the output is just probabilities,need to convert to categorical
+test_pred <- apply(test_pred, 1, which.max)
+```
+
+
+```{r}
+#write prediction to csv
+library(data.table) # install if not installed already
+fwrite(list(test_pred), file = "../output/baseline_test_pred.csv")
+```
 
 
 ###Reference
