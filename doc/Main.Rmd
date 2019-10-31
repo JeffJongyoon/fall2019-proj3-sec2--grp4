@@ -114,14 +114,10 @@ and the midpoint of the upper lip(52).  For example, the distance of an happy fa
 ```{r feature}
 source("../lib/feature.R")
 tm_feature_train <- NA
-if(run.feature.train){
-  tm_feature_train <- system.time(dat_train <- feature(fiducial_pt_list, train_idx))
-}
+tm_feature_train <- system.time(dat_train <- feature(fiducial_pt_list, train_idx))
 
 tm_feature_test <- NA
-if(run.feature.train){
-  tm_feature_test <- system.time(dat_test <- feature(fiducial_pt_list, test_idx))
-}
+tm_feature_test <- system.time(dat_test <- feature(fiducial_pt_list, test_idx))
 
 save(dat_train, file="../output/feature_train.RData")
 save(dat_test, file="../output/feature_test.RData")
@@ -178,10 +174,32 @@ load(file="../output/feature_test.RData")
 ##Step 5: Visualize how the RMSE changes with the different parameters we tuned for
 ```{r}
 #read in csv with learned hyperparameters
+hyper_params<-read.csv("../output/hyper_grid.csv", header=TRUE, sep = ",")
 
-#plot RMSE vs n trees
-#plot RMSE vs depth
-#plot RMSE vs shrinkage
+#split the table for different levels of shrinkage
+data.01 <- hyper_params[hyper_params$shrinkage==0.01,]
+data.05 <- hyper_params[hyper_params$shrinkage==0.05,]
+data.1 <- hyper_params[hyper_params$shrinkage==0.1,]
+
+#for each table, keep the different depths and their depths
+plot.01 = ggplot() + 
+  geom_line(data = data.01[data.01$interaction.depth==7,], mapping = aes(x = n_trees, y = min_RMSE,color="7")) + 
+  geom_line(data = data.01[data.01$interaction.depth==3,], mapping = aes( x = n_trees, y = min_RMSE, color="3"))+
+  geom_line(data.01[data.01$interaction.depth==5,], mapping = aes(x = n_trees, y = min_RMSE,color="5"))+ labs(title = "Min RMSE for different number of trees at shrinkage 0.01", color = "depth")
+
+plot.05 = ggplot() + 
+  geom_line(data = data.05[data.05$interaction.depth==7,], mapping = aes(x = n_trees, y = min_RMSE,color="7")) + 
+  geom_line(data = data.05[data.05$interaction.depth==3,], mapping = aes( x = n_trees, y = min_RMSE, color="3"))+
+  geom_line(data.05[data.05$interaction.depth==5,], mapping = aes(x = n_trees, y = min_RMSE,color="5"))+ labs(title = "Min RMSE for different number of trees at shrinkage 0.05", color = "depth")
+
+plot.1 = ggplot() + 
+  geom_line(data = data.1[data.1$interaction.depth==7,], mapping = aes(x = n_trees, y = min_RMSE,color="7")) + 
+  geom_line(data = data.1[data.1$interaction.depth==3,], mapping = aes( x = n_trees, y = min_RMSE, color="3"))+
+  geom_line(data.1[data.1$interaction.depth==5,], mapping = aes(x = n_trees, y = min_RMSE,color="5"))+ labs(title = "Min RMSE for different number of trees at shrinkage 0.1", color = "depth")
+
+
+#plot the 3 plots
+grid.arrange(plot.01, plot.05, plot.1,nrow=3)
 ```
 
 
@@ -195,7 +213,7 @@ save(fit_train, file="../output/fit_train.RData")
 ```
 
 
-##Step 7: Test the final model and evaluate that
+##Step 7: Test the final model
 ```{r}
 #test the final model: and print out graph
 source("../lib/test.R")
@@ -212,22 +230,21 @@ cat("The accuracy of model is", accu*100, "%.\n")
 
 ```
 
+##Step 4: Evaluate the final model
 ```{r}
 #evaluation
 library(caret)
-confusionMatrix(table(pred, dat_test$emotion_idx))
+#this line below prints out the evaluation of the model
+#confusionMatrix(table(pred, dat_test$emotion_idx))
 
 ### Summarize Running Time
 #Prediction performance matters, so does the running times for constructing features and #for training the model, especially when the computation resource is limited. 
-#cat("Time for constructing training features=", tm_feature_train[1], "s \n")
-#cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
+cat("Time for constructing training features=", tm_feature_train[1], "s \n")
+cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
 cat("Time for training model=", tm_train[1], "s \n")
 cat("Time for testing model=", tm_test[1], "s \n")
 ```
 **### ------>>>> Implementation of the baseline model ends here**
-```{r}
-#Maybe look at which features give the most inf
-```
 
 ###Reference
 - Du, S., Tao, Y., & Martinez, A. M. (2014). Compound facial expressions of emotion. Proceedings of the National Academy of Sciences, 111(15), E1454-E1462.
