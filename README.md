@@ -21,11 +21,11 @@ Term: Fall 2019
 
 **Each teammate's part:**
 + Qiqi: Research on feature extraction,XGBoost model and NN model attempts and tuning
-+ Zun: Feature extraction ,CNN model attempt and NN model tuning and modification
++ Dingyi: Feature extraction ,CNN model attempt and NN model tuning and modification
 + Nicole: Feature extraction plus baseline model creation and tuning.
 + Jongyoon: XGBoost attempt, Prepared the presentation
 + Nyu: Feature extraction
-+ Dingyi: Logistic regression + svm attempts (without feature selection/transformation)
++ Zun: Logistic regression + svm attempts (without feature selection/transformation)
 
 **Major contributors:** Zun, Nicole, Jongyoon,Qiqi
 
